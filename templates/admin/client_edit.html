@@ -1,0 +1,51 @@
+{% extends "admin/base.html" %}
+{% block title %}Клиент{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <h1 class="page-title">{{ client.full_name }}</h1>
+    <p class="page-desc">WhatsApp и Instagram ниже задаются один раз в профиле клиента и действуют во всех его галереях.</p>
+  </div>
+  <a class="btn btn-secondary" href="{{ url_for('admin_panel.clients') }}">Назад</a>
+</section>
+
+<section class="panel">
+  <form method="post" class="grid-form single-col" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label class="field">
+      <span>Имя</span>
+      <input name="full_name" value="{{ client.full_name }}" required>
+    </label>
+    <label class="field">
+      <span>WhatsApp</span>
+      <input name="whatsapp" value="{{ client.whatsapp or '' }}" placeholder="+79990001122 или https://wa.me/79990001122" autocomplete="tel">
+    </label>
+    <label class="field">
+      <span>Instagram</span>
+      <input name="instagram" value="{{ client.instagram or '' }}" placeholder="@username или ссылка" autocomplete="off">
+    </label>
+
+    <div class="field">
+      <span>Аватар</span>
+      <div class="avatar-edit-row">
+        {% if client_avatar_url(client) %}
+          <img src="{{ client_avatar_url(client) }}" alt="" class="client-avatar-lg" width="96" height="96">
+        {% else %}
+          <div class="client-avatar-placeholder lg" aria-hidden="true">?</div>
+        {% endif %}
+        <div class="avatar-edit-actions">
+          <input type="file" name="avatar" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp">
+          {% if client.avatar_filename %}
+            <label class="checkbox-row">
+              <input type="checkbox" name="remove_avatar" value="1">
+              <span>Удалить аватар</span>
+            </label>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+  </form>
+</section>
+{% endblock %}

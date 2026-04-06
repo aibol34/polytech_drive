@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Вход · polytech_drive</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body class="auth-body">
+  <div class="auth-grid">
+    <div class="auth-card glass">
+      <div class="auth-brand">
+        <span class="brand-mark">◆</span>
+        <div>
+          <div class="brand-title">polytech_drive</div>
+          <div class="brand-sub">secure admin</div>
+        </div>
+      </div>
+      {% include "partials/flash.html" %}
+      <form method="post" class="auth-form" name="login" autocomplete="on">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label class="field">
+          <span>Логин</span>
+          <input id="login-username" type="text" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" inputmode="text" required>
+        </label>
+        <label class="field">
+          <span>Пароль</span>
+          <input id="login-password" type="password" name="password" autocomplete="current-password" required>
+        </label>
+        <label class="checkbox-row remember-row">
+          <input type="checkbox" name="remember" value="1" checked>
+          <span>Запомнить на этом устройстве (не выходить месяцами)</span>
+        </label>
+        <button type="submit" class="btn btn-primary btn-block">Войти</button>
+      </form>
+      <p class="auth-hint auth-hint-secondary">Логин и пароль можно сохранить в браузере или менеджере паролей — поля поддерживают автозаполнение.</p>
+      <p class="auth-hint">Доступ только для администратора.</p>
+    </div>
+    <div class="auth-side">
+      <div class="glow orb"></div>
+      <div class="glow orb2"></div>
+    </div>
+  </div>
+</body>
+</html>

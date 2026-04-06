@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{{ album.title }} · polytech_drive</title>
+  <meta name="description" content="{{ og_description }}">
+  <meta name="theme-color" content="#0c0d10">
+  <link rel="canonical" href="{{ canonical_url }}">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="polytech_drive">
+  <meta property="og:locale" content="ru_RU">
+  <meta property="og:url" content="{{ canonical_url }}">
+  <meta property="og:title" content="{{ og_title }}">
+  <meta property="og:description" content="{{ og_description }}">
+  {% if og_image %}
+  <meta property="og:image" content="{{ og_image }}">
+  <meta property="og:image:alt" content="{{ album.title }}">
+  {% endif %}
+
+  <meta name="twitter:card" content="{% if og_image %}summary_large_image{% else %}summary{% endif %}">
+  <meta name="twitter:title" content="{{ og_title }}">
+  <meta name="twitter:description" content="{{ og_description }}">
+  {% if og_image %}
+  <meta name="twitter:image" content="{{ og_image }}">
+  {% endif %}
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/gallery.css') }}">
+</head>
+<body class="gallery-body" data-slug="{{ album.slug }}" data-sort="{{ sort }}" data-per="{{ per_page }}" data-total="{{ total_photos }}">
+  <header class="gallery-header">
+    <div class="header-inner">
+      <div class="header-top">
+        <div class="header-title-row">
+          <div class="gallery-avatar-stack" aria-hidden="true">
+            {% for c in gallery_clients %}
+              {% if client_avatar_url(c) %}
+                <img class="gallery-client-avatar gallery-client-avatar--sm" src="{{ client_avatar_url(c) }}" alt="" width="48" height="48" loading="lazy">
+              {% endif %}
+            {% endfor %}
+          </div>
+          <div>
+            <p class="eyebrow">polytech_drive gallery</p>
+            <h1 class="gallery-title">{{ album.title }}</h1>
+            <p class="photographer">{% if gallery_clients %}{{ gallery_clients | map(attribute='full_name') | join(' · ') }}{% else %}—{% endif %}</p>
+          </div>
+        </div>
+        <div class="header-meta">
+          <span class="pill">{{ total_photos }} фото</span>
+          {% if album.status == 'expired' or progress.is_expired %}
+            <span class="pill pill-warn">Срок хранения истёк</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="timer-card">
+        <div class="timer-row">
+          <div>
+            <div class="timer-label">Прошло дней</div>
+            <div class="timer-value">{{ progress.elapsed_days }}</div>
+          </div>
+          <div>
+            <div class="timer-label">Осталось дней</div>
+            <div class="timer-value">{{ progress.remaining_days }}</div>
+          </div>
+          <div class="timer-progress-wrap">
+            <div class="timer-label">Прогресс хранения (20 дней)</div>
+            <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ progress.percent }}">
+              <div class="progress-fill" style="--p: {{ progress.percent }}"></div>
+            </div>
+            <div class="timer-meta">{{ progress.percent }}%</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <a class="btn btn-primary" href="{{ url_for('gallery.download_all', slug=album.slug, sort=sort) }}">Скачать все</a>
+        {% for item in wa_links %}
+          <a class="btn btn-secondary" href="{{ item.url }}" target="_blank" rel="noopener">WA · {{ item.label }}</a>
+        {% endfor %}
+        {% for item in ig_links %}
+          <a class="btn btn-secondary" href="{{ item.url }}" target="_blank" rel="noopener">IG · {{ item.label }}</a>
+        {% endfor %}
+      </div>
+    </div>
+  </header>
+
+  {% if album.status == 'expired' or progress.is_expired %}
+    <div class="banner-expired">
+      Срок хранения истёк. Галерея доступна для просмотра; файлы на Google Drive не удаляются автоматически.
+    </div>
+  {% endif %}
+
+  <main class="gallery-main">
+    <div class="gallery-toolbar">
+      <div class="sort">
+        <span class="muted">Сортировка:</span>
+        <a class="sort-link {% if sort == 'new' %}active{% endif %}" href="{{ url_for('gallery.gallery_page', slug=album.slug, sort='new') }}">Сначала новые</a>
+        <a class="sort-link {% if sort == 'old' %}active{% endif %}" href="{{ url_for('gallery.gallery_page', slug=album.slug, sort='old') }}">Сначала старые</a>
+      </div>
+    </div>
+
+    <section class="photo-grid" id="photoGrid" aria-label="Фотографии"></section>
+    <div class="load-sentinel" id="loadSentinel"></div>
+    <div class="load-hint muted" id="loadHint"></div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="brand-mark">◆</span>
+        <div>
+          <div class="brand-title">polytech_drive</div>
+          <div class="brand-sub">Премиальная доставка фотографий клиенту</div>
+        </div>
+      </div>
+      <div class="footer-links">
+        {% for item in wa_links %}
+          <a href="{{ item.url }}" target="_blank" rel="noopener">WhatsApp · {{ item.label }}</a>
+        {% endfor %}
+        {% for item in ig_links %}
+          <a href="{{ item.url }}" target="_blank" rel="noopener">Instagram · {{ item.label }}</a>
+        {% endfor %}
+      </div>
+      <div class="footer-copy muted">© 2026 polytech_drive. Все права защищены.</div>
+    </div>
+  </footer>
+
+  <div class="lightbox" id="lightbox" hidden>
+    <button class="lightbox-close" id="lbClose" aria-label="Закрыть">×</button>
+    <button class="lightbox-nav prev" id="lbPrev" aria-label="Назад">‹</button>
+    <button class="lightbox-nav next" id="lbNext" aria-label="Вперёд">›</button>
+    <div class="lightbox-inner">
+      <img id="lbImg" alt="">
+      <div class="lightbox-bar">
+        <a class="btn btn-ghost btn-sm" id="lbDownload" href="#" download>Скачать</a>
+        <span class="muted" id="lbCaption"></span>
+      </div>
+    </div>
+  </div>
+
+  <script id="initial-photos" type="application/json">{{ photos | tojson }}</script>
+  <script src="{{ url_for('static', filename='js/gallery.js') }}"></script>
+</body>
+</html>

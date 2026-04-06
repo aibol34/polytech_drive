@@ -1,0 +1,128 @@
+{% extends "admin/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-desc">Альбомы, статусы и сроки хранения (20 дней).</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-secondary" href="{{ url_for('admin_panel.dashboard') }}">Обновить</a>
+    <a class="btn btn-primary" href="{{ url_for('admin_panel.album_new') }}">Новый альбом</a>
+  </div>
+</section>
+
+{% if notifications %}
+<section class="panel notifications-panel">
+  <div class="panel-head">
+    <h2>Уведомления</h2>
+    {% if unread_notifications %}
+      <span class="badge">{{ unread_notifications }} новых</span>
+    {% endif %}
+  </div>
+  <ul class="notif-list">
+    {% for n in notifications %}
+      <li class="notif-item {% if not n.is_read %}unread{% endif %}">
+        <div class="notif-text">{{ n.message }}</div>
+        {% if not n.is_read %}
+          <form method="post" action="{{ url_for('admin_panel.notification_read', nid=n.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-ghost btn-sm">Прочитано</button>
+          </form>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<section class="stats-grid">
+  <article class="stat-card">
+    <div class="stat-label">Всего альбомов</div>
+    <div class="stat-value">{{ stats.total }}</div>
+    <div class="stat-glow"></div>
+  </article>
+  <article class="stat-card accent">
+    <div class="stat-label">Активные</div>
+    <div class="stat-value">{{ stats.active }}</div>
+    <div class="stat-glow"></div>
+  </article>
+  <article class="stat-card warn">
+    <div class="stat-label">Просроченные</div>
+    <div class="stat-value">{{ stats.expired }}</div>
+    <div class="stat-glow"></div>
+  </article>
+</section>
+
+<section class="panel">
+  <div class="panel-head">
+    <h2>Альбомы</h2>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Название</th>
+          <th>Клиент</th>
+          <th>Статус</th>
+          <th>Создан</th>
+          <th>Дней прошло</th>
+          <th>Прогресс</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          {% set a = row.album %}
+          {% set clist = row.clients %}
+          {% set p = row.progress %}
+          <tr>
+            <td class="td-strong">{{ a.title }}</td>
+            <td>
+              <div class="dash-client-cell dash-client-cell-multi">
+                {% for c in clist %}
+                  {% if client_avatar_url(c) %}
+                    <img src="{{ client_avatar_url(c) }}" alt="" class="client-avatar-sm" width="36" height="36" title="{{ c.full_name }}">
+                  {% endif %}
+                {% endfor %}
+                <span>{% if clist %}{{ clist | map(attribute='full_name') | join(', ') }}{% else %}—{% endif %}</span>
+              </div>
+            </td>
+            <td>
+              <span class="pill pill-{{ a.status }}">{{ a.status }}</span>
+            </td>
+            <td class="muted">{{ a.created_at.strftime('%d.%m.%Y %H:%M') if a.created_at else '—' }}</td>
+            <td>{{ p.elapsed_days }}</td>
+            <td style="min-width:180px">
+              <div class="mini-progress">
+                <div class="mini-progress-bar" style="width: {{ p.percent }}%"></div>
+              </div>
+              <div class="mini-progress-meta">{{ p.percent }}%</div>
+            </td>
+            <td class="td-actions">
+              <a class="btn btn-ghost btn-sm" href="{{ url_for('gallery.gallery_page', slug=a.slug) }}" target="_blank" rel="noopener">Галерея</a>
+              {% if a.drive_folder_url %}
+                <a class="btn btn-ghost btn-sm" href="{{ a.drive_folder_url }}" target="_blank" rel="noopener">Drive</a>
+              {% endif %}
+              <form method="post" action="{{ url_for('admin_panel.album_refresh', aid=a.id) }}" style="display:inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-ghost btn-sm">Импорт</button>
+              </form>
+              <form method="post" action="{{ url_for('admin_panel.album_toggle_hidden', aid=a.id) }}" style="display:inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-ghost btn-sm">{% if a.status == 'hidden' %}Показать{% else %}Скрыть{% endif %}</button>
+              </form>
+              <form method="post" action="{{ url_for('admin_panel.album_delete', aid=a.id) }}" style="display:inline" onsubmit="return confirm('Удалить альбом?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+              </form>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="7" class="muted">Пока нет альбомов.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

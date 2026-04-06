@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>polytech_drive</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+</head>
+<body class="landing-body">
+  <div class="landing-wrap">
+    <header class="landing-header">
+      <div class="brand">
+        <span class="brand-mark">◆</span>
+        <div>
+          <div class="brand-title">polytech_drive</div>
+          <div class="brand-sub">Премиальные фото‑галереи для клиентов</div>
+        </div>
+      </div>
+      <a class="btn btn-secondary btn-sm" href="{{ url_for('admin_auth.login') }}">Вход</a>
+    </header>
+    <main class="landing-main">
+      <h1 class="landing-title">Тихая эстетика. Чёткая доставка.</h1>
+      <p class="landing-lead muted">
+        Администратор создаёт альбомы, подключает Google Drive, а клиент получает красивую страницу с таймером хранения и удобной загрузкой.
+      </p>
+      <div class="landing-actions">
+        <a class="btn btn-primary" href="{{ url_for('admin_auth.login') }}">Админ‑панель</a>
+      </div>
+    </main>
+    <footer class="landing-footer muted">
+      © 2026 polytech_drive
+    </footer>
+  </div>
+</body>
+</html>

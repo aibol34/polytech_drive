@@ -1,0 +1,9 @@
+.env
+static/uploads/
+instance/*.db
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.log

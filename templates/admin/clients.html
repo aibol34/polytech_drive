@@ -1,0 +1,68 @@
+{% extends "admin/base.html" %}
+{% block title %}Клиенты{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <h1 class="page-title">Клиенты</h1>
+    <p class="page-desc">Поиск, добавление и редактирование. Аватар — JPG, PNG или WEBP до 5 МБ. WhatsApp и Instagram задаются в карточке клиента.</p>
+  </div>
+</section>
+
+<section class="panel">
+  <form method="get" class="toolbar">
+    <input type="search" name="q" value="{{ q }}" placeholder="Поиск по имени..." class="input-grow">
+    <button type="submit" class="btn btn-secondary">Найти</button>
+  </form>
+
+  <form method="post" class="inline-form grid-form client-add-form" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label class="field">
+      <span>Имя</span>
+      <input name="full_name" required placeholder="Иван Иванов">
+    </label>
+    <label class="field">
+      <span>Аватар</span>
+      <input type="file" name="avatar" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp">
+    </label>
+    <div class="field field-action">
+      <span>&nbsp;</span>
+      <button type="submit" class="btn btn-primary">Добавить клиента</button>
+    </div>
+  </form>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Имя</th>
+          <th>WhatsApp</th>
+          <th>Instagram</th>
+          <th>Создан</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in items %}
+          <tr>
+            <td class="td-avatar">
+              {% if client_avatar_url(c) %}
+                <img src="{{ client_avatar_url(c) }}" alt="" class="client-avatar-sm" width="40" height="40">
+              {% else %}
+                <div class="client-avatar-placeholder" aria-hidden="true">?</div>
+              {% endif %}
+            </td>
+            <td class="td-strong">{{ c.full_name }}</td>
+            <td>{{ c.whatsapp or '—' }}</td>
+            <td>{{ c.instagram or '—' }}</td>
+            <td class="muted">{{ c.created_at.strftime('%d.%m.%Y') if c.created_at else '—' }}</td>
+            <td><a class="btn btn-ghost btn-sm" href="{{ url_for('admin_panel.client_edit', cid=c.id) }}">Изменить</a></td>
+          </tr>
+        {% else %}
+          <tr><td colspan="6" class="muted">Клиентов пока нет.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

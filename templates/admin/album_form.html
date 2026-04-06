@@ -1,0 +1,80 @@
+{% extends "admin/base.html" %}
+{% block title %}{% if album %}Альбом{% else %}Новый альбом{% endif %}{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <h1 class="page-title">{% if album %}Редактирование альбома{% else %}Новый альбом{% endif %}</h1>
+    <p class="page-desc">Название галереи совпадает с именем папки на Google Drive. Выберите одного или нескольких клиентов и укажите ссылку на папку.</p>
+  </div>
+  <a class="btn btn-secondary" href="{{ url_for('admin_panel.dashboard') }}">К списку</a>
+</section>
+
+<section class="panel">
+  <form method="post" class="grid-form album-form" id="albumForm">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="field">
+      <span>Клиенты</span>
+      <div class="client-checkboxes">
+        {% for c in clients %}
+        <label class="checkbox-row">
+          <input type="checkbox" name="client_ids" value="{{ c.id }}" {% if c.id in album_client_ids %}checked{% endif %}>
+          <span>{{ c.full_name }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% if album %}
+    <div class="field">
+      <span>Название (из Google Drive)</span>
+      <p class="muted" style="margin:0"><strong>{{ album.title }}</strong> — обновится при сохранении, если изменится имя папки или ссылка.</p>
+    </div>
+    {% endif %}
+
+    <label class="field">
+      <span>Ссылка на папку Google Drive</span>
+      <input name="drive_folder_url" id="driveFolderUrl" value="{{ album.drive_folder_url if album else '' }}" placeholder="https://drive.google.com/drive/folders/...">
+      <span class="muted" style="font-size:12px;line-height:1.45">Если используете <strong>GOOGLE_DRIVE_API_KEY</strong> в .env: папку нужно открыть для чтения по ссылке («Все, у кого есть ссылка» → Просмотр).</span>
+    </label>
+
+    <div class="field-row">
+      <button type="submit" name="action" value="connect" class="btn btn-secondary">Подключить / проверить</button>
+      <button type="button" class="btn btn-ghost" id="btnPreview">Превью (API)</button>
+    </div>
+
+    <p class="muted" style="font-size:13px;line-height:1.45;margin:0">WhatsApp и Instagram задаются <strong>один раз</strong> в <a href="{{ url_for('admin_panel.clients') }}">профиле клиента</a> и показываются во всех его галереях.</p>
+
+    {% if album %}
+      <div class="slug-hint muted">Публичная ссылка: <code>/g/{{ album.slug }}</code></div>
+    {% endif %}
+
+    <div class="preview-block" id="previewBlock" hidden>
+      <h3>Превью</h3>
+      <div class="preview-grid" id="previewGrid"></div>
+      <div class="muted" id="previewMeta"></div>
+    </div>
+
+    {% if preview_photos %}
+      <h3 class="mt-2">Загруженные фото (фрагмент)</h3>
+      <div class="preview-grid">
+        {% for ph in preview_photos %}
+          <div class="preview-item">
+            {% if ph.thumb_url %}
+              <img src="{{ ph.thumb_url }}" alt="" loading="lazy">
+            {% else %}
+              <div class="preview-fallback">{{ ph.filename }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="form-actions">
+      <button type="submit" name="action" value="save" class="btn btn-primary">Сохранить</button>
+    </div>
+  </form>
+</section>
+
+<script src="{{ url_for('static', filename='js/admin_album.js') }}"></script>
+{% endblock %}
