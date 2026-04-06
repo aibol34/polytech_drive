@@ -1,0 +1,40 @@
+Почему «Матрица» / 404 вместо JSON на /polytech_drive/api/v1/health
+====================================================================
+
+Проверка снаружи (curl -I):
+  Server: openresty
+  X-Powered-By: Express
+
+Значит трафик сначала попадает в Node.js (Express), а не в gunicorn на 127.0.0.1:8010.
+Правка только «обычного» nginx на Debian НЕ поможет, если домен обслуживает другой стек.
+
+Нужно ОДНО из двух (на машине, где реально слушает aspc.kz):
+
+--- A) OpenResty / nginx: location ДО прокси на Express ---
+
+В том же server { }, где запросы уходят на Node, добавьте ПЕРЕД catch-all / SPA:
+
+  include /etc/nginx/snippets/polytech_drive.conf;
+
+или скопируйте содержимое deploy/nginx-location-polytech_drive.conf.example
+
+Убедитесь, что gunicorn слушает 127.0.0.1:8010:
+  systemctl status polytech-drive
+  curl -sS http://127.0.0.1:8010/polytech_drive/api/v1/health
+
+--- B) Только Express (без отдельного location в nginx) ---
+
+В app.js / server.js зарегистрируйте прокси ДО маршрута «отдать index.html для SPA».
+См. deploy/express-proxy-middleware.example.cjs
+
+После изменений: systemctl reload nginx (или перезапуск Node), затем снова проверьте URL.
+
+--- C) Альтернатива: поддомен drive.aspc.kz только на Flask ---
+
+Если править Express/OpenResty сложно: поднимите отдельный server_name в nginx/OpenResty,
+прокси на 127.0.0.1:8010 без подпути. См. deploy/subdomain-drive.example.conf
+В .env: APPLICATION_ROOT пустой, PUBLIC_BASE_URL=https://drive.aspc.kz
+
+--- Диагностика на сервере ---
+
+  bash /var/www/polytech_drive/deploy/verify-server.sh
